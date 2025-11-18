@@ -1,0 +1,73 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime files
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Environment variables
+.env
+.env.*.local
+.env.local
+
+# Build output
+dist/
+build/
+out/
+coverage/
+.nyc_output/
+coverage-final.json
+
+# Bundler caches
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.svelte-kit/
+.webpack/
+
+# Editor/IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test output
+jest.config.*.json
+__tests__/snapshots/
+test-results/
+*.lcov
+
+# Misc
+*.tgz
+*.log.*
+*.log
+*.zip
+
+# Serverless / deployment
+.serverless/
+.vercel/
+.now/
+.vercel_build_output/
+
+# Lockfile (optional: uncomment if you want to ignore lockfiles)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+```# filepath: /home/mdhv11/Documents/The-Last-cigarette/.gitignore
+
+#
