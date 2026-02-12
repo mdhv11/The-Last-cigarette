@@ -72,3 +72,5 @@ test-results/
 ```# filepath: /home/mdhv11/Documents/The-Last-cigarette/.gitignore
 
 specs
+/home/mdhv11/Codes/The-Last-cigarette/client/src/firebaseConfig.js
+/home/mdhv11/Codes/The-Last-cigarette/server/src/config/serviceAccountKey.json
