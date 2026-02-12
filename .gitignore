@@ -51,6 +51,7 @@ jest.config.*.json
 __tests__/snapshots/
 test-results/
 *.lcov
+.kiro
 
 # Misc
 *.tgz
@@ -70,4 +71,4 @@ test-results/
 # pnpm-lock.yaml
 ```# filepath: /home/mdhv11/Documents/The-Last-cigarette/.gitignore
 
-#
+specs
