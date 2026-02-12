@@ -66,19 +66,34 @@ export const notificationService = {
         });
     },
 
-    scheduleCravingSupport: async () => {
-        // Schedule a random check-in (e.g., in 3 hours) - simplified for now
-        await Notifications.scheduleNotificationAsync({
-            content: {
-                title: "Stay Strong!",
-                body: "Remember your reasons for quitting. You got this!",
-            },
-            trigger: {
-                type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-                seconds: 60 * 60 * 3, // 3 hours
-                repeats: false,
-            },
-        });
+    scheduleCravingSupport: async (times: string[]) => {
+        // Cancel existing craving support notifications (simplified: canceling all for now)
+        // ideally we track IDs, but for this MVP, cancelAll is safer
+        await notificationService.cancelAllNotifications();
+
+        // Re-schedule daily reminder as we just cancelled everything
+        await notificationService.scheduleDailyReminder();
+
+        for (const time of times) {
+            const [hourStr, minuteStr] = time.split(':');
+            const hour = parseInt(hourStr);
+            const minute = parseInt(minuteStr);
+
+            if (!isNaN(hour) && !isNaN(minute)) {
+                await Notifications.scheduleNotificationAsync({
+                    content: {
+                        title: "Check-in Time",
+                        body: "Take a moment to breathe. How are you feeling?",
+                    },
+                    trigger: {
+                        type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+                        hour: hour,
+                        minute: minute,
+                        repeats: true,
+                    },
+                });
+            }
+        }
     },
 
     cancelAllNotifications: async () => {

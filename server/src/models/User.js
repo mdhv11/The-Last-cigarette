@@ -31,7 +31,8 @@ const UserSchema = new mongoose.Schema({
         remindersEnabled: { type: Boolean, default: true },
         punishmentsEnabled: { type: Boolean, default: false },
         donationAmount: { type: Number, default: 0 },
-        treatsList: [{ type: String }]
+        treatsList: [{ type: String }],
+        checkInTimes: [{ type: String }] // Array of "HH:MM" strings
     }
 }, {
     timestamps: true
