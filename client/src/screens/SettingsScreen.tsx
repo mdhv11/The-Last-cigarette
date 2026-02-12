@@ -1,277 +1,186 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Text, List, Switch, Button, Divider, TextInput, useTheme } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  PlanSettingsForm, 
-  NotificationSettings, 
-  PunishmentSettings, 
-  RewardsSettings 
-} from '../components';
-import { getCurrentPlan } from '../store/planSlice';
-import { RootState, AppDispatch } from '../store';
+import { AppDispatch, RootState } from '../store/store';
+import { logout } from '../store/authSlice';
+import { useNavigation } from '@react-navigation/native';
+import { notificationService } from '../services/notificationService';
 
-type SettingsView = 'main' | 'plan' | 'notifications' | 'punishment' | 'rewards';
+export const SettingsScreen = () => {
+    const dispatch = useDispatch<AppDispatch>();
+    const navigation = useNavigation<any>();
+    const { user } = useSelector((state: RootState) => state.auth);
+    const theme = useTheme();
 
-export const SettingsScreen: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { quitPlan, isLoading } = useSelector((state: RootState) => state.plan);
-  const [currentView, setCurrentView] = useState<SettingsView>('main');
+    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [cravingSupportEnabled, setCravingSupportEnabled] = useState(true);
+    const [donationAmount, setDonationAmount] = useState('5.00');
+    const [treatWishlist, setTreatWishlist] = useState('');
 
-  useEffect(() => {
-    // Fetch current plan when screen loads
-    dispatch(getCurrentPlan());
-  }, [dispatch]);
+    const handleLogout = () => {
+        Alert.alert(
+            "Logout",
+            "Are you sure you want to logout?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Logout", style: "destructive", onPress: () => dispatch(logout()) }
+            ]
+        );
+    };
 
-  const handlePlanSettingsPress = () => {
-    if (!quitPlan) {
-      Alert.alert(
-        'No Plan Found',
-        'You need to set up a quit plan first.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-    setCurrentView('plan');
-  };
+    const handleEditPlan = () => {
+        navigation.navigate('PlanSetup', { isEditing: true });
+    };
 
-  const handleCloseSubView = () => {
-    setCurrentView('main');
-  };
-
-  // Render sub-views
-  if (currentView === 'plan') {
     return (
-      <SafeAreaView style={styles.container}>
-        <PlanSettingsForm onClose={handleCloseSubView} />
-      </SafeAreaView>
+        <ScrollView style={styles.container}>
+            <View style={styles.header}>
+                <Text variant="headlineMedium" style={styles.title}>Settings</Text>
+            </View>
+
+            <List.Section>
+                <List.Subheader>Account</List.Subheader>
+                <List.Item
+                    title={user?.name || 'User'}
+                    description={user?.email}
+                    left={props => <List.Icon {...props} icon="account" />}
+                />
+                <View style={styles.buttonContainer}>
+                    <Button mode="outlined" onPress={handleLogout} textColor={theme.colors.error}>
+                        Logout
+                    </Button>
+                </View>
+            </List.Section>
+
+            <Divider />
+
+            <List.Section>
+                <List.Subheader>Quit Plan</List.Subheader>
+                <List.Item
+                    title="Edit Plan"
+                    description="Adjust your quit date and limits"
+                    left={props => <List.Icon {...props} icon="calendar-edit" />}
+                    onPress={handleEditPlan}
+                    right={props => <List.Icon {...props} icon="chevron-right" />}
+                />
+            </List.Section>
+
+            <Divider />
+
+            <List.Section>
+                <List.Subheader>Notifications</List.Subheader>
+                <List.Item
+                    title="Daily Reminders"
+                    description="Remind me to log and check progress"
+                    left={props => <List.Icon {...props} icon="bell" />}
+                    right={() => (
+                        <Switch
+                            value={notificationsEnabled}
+                            onValueChange={async (value) => {
+                                setNotificationsEnabled(value);
+                                if (value) {
+                                    await notificationService.registerForPushNotificationsAsync();
+                                    await notificationService.scheduleDailyReminder();
+                                } else {
+                                    await notificationService.cancelAllNotifications();
+                                }
+                            }}
+                        />
+                    )}
+                />
+                <List.Item
+                    title="Craving Support"
+                    description="Periodic check-ins during high risk times"
+                    left={props => <List.Icon {...props} icon="heart-pulse" />}
+                    right={() => (
+                        <Switch
+                            value={cravingSupportEnabled}
+                            onValueChange={async (value) => {
+                                setCravingSupportEnabled(value);
+                                if (value) {
+                                    await notificationService.registerForPushNotificationsAsync();
+                                    await notificationService.scheduleCravingSupport();
+                                } else {
+                                    // Note: This cancels ALL notifications, might want more granular control in future
+                                    if (!notificationsEnabled) {
+                                        await notificationService.cancelAllNotifications();
+                                    }
+                                }
+                            }}
+                        />
+                    )}
+                />
+            </List.Section>
+
+            <Divider />
+
+            <List.Section>
+                <List.Subheader>Punishments & Rewards</List.Subheader>
+                <View style={styles.inputContainer}>
+                    <Text variant="bodyMedium" style={styles.label}>Donation per cigarette over limit (₹)</Text>
+                    <TextInput
+                        mode="outlined"
+                        value={donationAmount}
+                        onChangeText={setDonationAmount}
+                        keyboardType="numeric"
+                        style={styles.input}
+                        dense
+                    />
+                </View>
+                <View style={styles.inputContainer}>
+                    <Text variant="bodyMedium" style={styles.label}>Treat Wishlist</Text>
+                    <TextInput
+                        mode="outlined"
+                        value={treatWishlist}
+                        onChangeText={setTreatWishlist}
+                        placeholder="e.g. New Headphones, Spa Day"
+                        style={styles.input}
+                        dense
+                    />
+                </View>
+            </List.Section>
+
+            <View style={styles.footer}>
+                <Text variant="bodySmall" style={styles.version}>Version 1.0.0</Text>
+            </View>
+        </ScrollView>
     );
-  }
-
-  if (currentView === 'notifications') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <NotificationSettings onClose={handleCloseSubView} />
-      </SafeAreaView>
-    );
-  }
-
-  if (currentView === 'punishment') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <PunishmentSettings onClose={handleCloseSubView} />
-      </SafeAreaView>
-    );
-  }
-
-  if (currentView === 'rewards') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <RewardsSettings onClose={handleCloseSubView} />
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Settings</Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quit Plan</Text>
-          
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={handlePlanSettingsPress}
-            disabled={isLoading}
-          >
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Modify Quit Plan</Text>
-              <Text style={styles.settingDescription}>
-                Update your quit date, daily targets, and reduction method
-              </Text>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-
-          {quitPlan && (
-            <View style={styles.planSummary}>
-              <Text style={styles.planSummaryTitle}>Current Plan</Text>
-              <View style={styles.planDetail}>
-                <Text style={styles.planDetailLabel}>Start Date:</Text>
-                <Text style={styles.planDetailValue}>
-                  {new Date(quitPlan.startDate).toLocaleDateString()}
-                </Text>
-              </View>
-              <View style={styles.planDetail}>
-                <Text style={styles.planDetailLabel}>Quit Date:</Text>
-                <Text style={styles.planDetailValue}>
-                  {new Date(quitPlan.quitDate).toLocaleDateString()}
-                </Text>
-              </View>
-              <View style={styles.planDetail}>
-                <Text style={styles.planDetailLabel}>Daily Amount:</Text>
-                <Text style={styles.planDetailValue}>
-                  {quitPlan.initialDailyAmount} cigarettes
-                </Text>
-              </View>
-              <View style={styles.planDetail}>
-                <Text style={styles.planDetailLabel}>Method:</Text>
-                <Text style={styles.planDetailValue}>
-                  {quitPlan.reductionMethod === 'gradual' ? 'Gradual Reduction' : 'Cold Turkey'}
-                </Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Notifications</Text>
-          
-          <TouchableOpacity 
-            style={styles.settingItem}
-            onPress={() => setCurrentView('notifications')}
-          >
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Notification Preferences</Text>
-              <Text style={styles.settingDescription}>
-                Manage reminders and alerts
-              </Text>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Accountability</Text>
-          
-          <TouchableOpacity 
-            style={styles.settingItem}
-            onPress={() => setCurrentView('punishment')}
-          >
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Punishment Settings</Text>
-              <Text style={styles.settingDescription}>
-                Configure donation amounts for exceeding limits
-              </Text>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.settingItem}
-            onPress={() => setCurrentView('rewards')}
-          >
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Rewards List</Text>
-              <Text style={styles.settingDescription}>
-                Customize your personal treats and rewards
-              </Text>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 32,
-  },
-  header: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  section: {
-    marginTop: 24,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    padding: 16,
-    paddingBottom: 8,
-    backgroundColor: '#f9f9f9',
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  settingContent: {
-    flex: 1,
-  },
-  settingLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 4,
-  },
-  settingDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  settingArrow: {
-    fontSize: 24,
-    color: '#ccc',
-    marginLeft: 12,
-  },
-  planSummary: {
-    padding: 16,
-    backgroundColor: '#f9f9f9',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  planSummaryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
-  },
-  planDetail: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  planDetailLabel: {
-    fontSize: 14,
-    color: '#666',
-  },
-  planDetailValue: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
-  },
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+    },
+    header: {
+        padding: 20,
+        paddingBottom: 0,
+    },
+    title: {
+        fontWeight: 'bold',
+        color: '#e74c3c',
+    },
+    buttonContainer: {
+        paddingHorizontal: 16,
+        paddingBottom: 10,
+    },
+    inputContainer: {
+        paddingHorizontal: 16,
+        marginBottom: 16,
+    },
+    label: {
+        marginBottom: 8,
+        color: '#666',
+    },
+    input: {
+        backgroundColor: '#fff',
+    },
+    footer: {
+        padding: 20,
+        alignItems: 'center',
+    },
+    version: {
+        color: '#999',
+    },
 });

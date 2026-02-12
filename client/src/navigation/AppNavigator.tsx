@@ -1,94 +1,83 @@
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { HomeScreen } from '../screens/HomeScreen';
+import { ProgressScreen } from '../screens/ProgressScreen';
+import { JournalScreen } from '../screens/JournalScreen';
+import { AchievementsScreen } from '../screens/AchievementsScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
+import { Ionicons } from '@expo/vector-icons'; // Make sure to install if not present, or use another icon set
+import { View, StyleSheet } from 'react-native';
+import { FAB } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
 
-// Lazy load non-critical screens
-const ProgressScreen = lazy(() => import('../screens/ProgressScreen').then(m => ({ default: m.ProgressScreen })));
-const JournalScreen = lazy(() => import('../screens/JournalScreen').then(m => ({ default: m.JournalScreen })));
-const SettingsScreen = lazy(() => import('../screens/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
-const AchievementsScreen = lazy(() => import('../screens/AchievementsScreen').then(m => ({ default: m.AchievementsScreen })));
+const Tab = createBottomTabNavigator();
 
-// Loading fallback component
-const LoadingScreen: React.FC = () => (
-  <View style={styles.loadingContainer}>
-    <ActivityIndicator size="large" color="#4CAF50" />
-  </View>
-);
+export const AppNavigator = () => {
+    const navigation = useNavigation<any>();
 
-export type MainTabParamList = {
-  Home: undefined;
-  Progress: undefined;
-  Journal: undefined;
-  Achievements: undefined;
-  Settings: undefined;
-};
+    return (
+        <View style={{ flex: 1 }}>
+            <Tab.Navigator
+                screenOptions={({ route }) => ({
+                    tabBarIcon: ({ focused, color, size }) => {
+                        let iconName;
 
-const Tab = createBottomTabNavigator<MainTabParamList>();
+                        if (route.name === 'Dashboard') {
+                            iconName = focused ? 'home' : 'home-outline';
+                        } else if (route.name === 'Progress') {
+                            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
+                        } else if (route.name === 'Journal') {
+                            iconName = focused ? 'book' : 'book-outline';
+                        }
 
-// Wrapper component for lazy-loaded screens
-const LazyScreen: React.FC<{ component: React.LazyExoticComponent<React.FC> }> = ({ component: Component }) => (
-  <Suspense fallback={<LoadingScreen />}>
-    <Component />
-  </Suspense>
-);
+                        // You can return any component that you like here!
+                        return <Ionicons name={iconName as any} size={size} color={color} />;
+                    },
+                    tabBarActiveTintColor: '#e74c3c',
+                    tabBarInactiveTintColor: 'gray',
+                    headerShown: false,
+                })}
+            >
+                <Tab.Screen name="Dashboard" component={HomeScreen} />
+                <Tab.Screen name="Progress" component={ProgressScreen} />
+                <Tab.Screen name="Journal" component={JournalScreen} />
+                <Tab.Screen
+                    name="Achievements"
+                    component={AchievementsScreen}
+                    options={{
+                        tabBarIcon: ({ color, size }) => (
+                            <Ionicons name="trophy-outline" size={size} color={color} />
+                        ),
+                    }}
+                />
+                <Tab.Screen
+                    name="Settings"
+                    component={SettingsScreen}
+                    options={{
+                        tabBarIcon: ({ color, size }) => (
+                            <Ionicons name="settings-outline" size={size} color={color} />
+                        ),
+                    }}
+                />
+            </Tab.Navigator>
 
-export const AppNavigator: React.FC = () => {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Progress') {
-            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
-          } else if (route.name === 'Journal') {
-            iconName = focused ? 'book' : 'book-outline';
-          } else if (route.name === 'Achievements') {
-            iconName = focused ? 'trophy' : 'trophy-outline';
-          } else if (route.name === 'Settings') {
-            iconName = focused ? 'settings' : 'settings-outline';
-          } else {
-            iconName = 'help-circle-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#4CAF50',
-        tabBarInactiveTintColor: '#999',
-        tabBarStyle: {
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
-        },
-        headerShown: false,
-      })}
-    >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Progress">
-        {() => <LazyScreen component={ProgressScreen} />}
-      </Tab.Screen>
-      <Tab.Screen name="Journal">
-        {() => <LazyScreen component={JournalScreen} />}
-      </Tab.Screen>
-      <Tab.Screen name="Achievements">
-        {() => <LazyScreen component={AchievementsScreen} />}
-      </Tab.Screen>
-      <Tab.Screen name="Settings">
-        {() => <LazyScreen component={SettingsScreen} />}
-      </Tab.Screen>
-    </Tab.Navigator>
-  );
+            <FAB
+                icon="alert-circle"
+                label="SOS"
+                style={styles.fab}
+                color="white"
+                onPress={() => navigation.navigate('SOS' as any)}
+            />
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
+    fab: {
+        position: 'absolute',
+        margin: 16,
+        right: 0,
+        bottom: 60, // Above tab bar
+        backgroundColor: '#e74c3c',
+    },
 });

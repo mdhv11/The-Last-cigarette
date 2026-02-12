@@ -1,83 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  SafeAreaView,
-} from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { LoginForm } from '../components/LoginForm';
-import { SignupForm } from '../components/SignupForm';
-import { verifyToken } from '../store/authSlice';
-import { RootState, AppDispatch } from '../store';
+import React, { useState } from 'react';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Text, Button } from 'react-native-paper';
+import { LoginForm } from '../components/auth/LoginForm';
+import { SignupForm } from '../components/auth/SignupForm';
 
-export const AuthScreen: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const [isLogin, setIsLogin] = useState(true);
+export const AuthScreen = () => {
+    const [isLogin, setIsLogin] = useState(true);
 
-  useEffect(() => {
-    // Check if user is already authenticated on app start
-    dispatch(verifyToken());
-  }, [dispatch]);
-
-  const switchToSignup = () => setIsLogin(false);
-  const switchToLogin = () => setIsLogin(true);
-
-  // Don't render auth screen if user is authenticated
-  if (isAuthenticated) {
-    return null;
-  }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+    return (
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.container}
         >
-          <View style={styles.formContainer}>
-            {isLogin ? (
-              <LoginForm onSwitchToSignup={switchToSignup} />
-            ) : (
-              <SignupForm onSwitchToLogin={switchToLogin} />
-            )}
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <Text variant="headlineLarge" style={styles.title}>
+                    TheLastCigarette
+                </Text>
+                <Text variant="bodyLarge" style={styles.subtitle}>
+                    {isLogin ? 'Welcome Back' : 'Start Your Journey'}
+                </Text>
+
+                {isLogin ? <LoginForm /> : <SignupForm />}
+
+                <Button
+                    mode="text"
+                    onPress={() => setIsLogin(!isLogin)}
+                    style={styles.switchButton}
+                >
+                    {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Login'}
+                </Button>
+            </ScrollView>
+        </KeyboardAvoidingView>
+    );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  keyboardAvoid: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    minHeight: '100%',
-  },
-  formContainer: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        padding: 20,
+    },
+    title: {
+        textAlign: 'center',
+        marginBottom: 10,
+        fontWeight: 'bold',
+    },
+    subtitle: {
+        textAlign: 'center',
+        marginBottom: 30,
+        color: '#666',
+    },
+    switchButton: {
+        marginTop: 20,
+    },
 });
