@@ -1,4 +1,8 @@
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+    try {
+        require('dotenv').config();
+    } catch (error) {}
+}
 const app = require('./src/app');
 const mongoose = require('mongoose');
 
