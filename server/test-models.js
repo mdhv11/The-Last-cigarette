@@ -10,7 +10,6 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/thelas
 async function testModels() {
     try {
         await mongoose.connect(MONGODB_URI);
-        console.log('Connected to MongoDB');
 
         // 1. Create User
         const user = new User({
@@ -28,7 +27,6 @@ async function testModels() {
             }
         });
         await user.save();
-        console.log('✅ User created:', user._id);
 
         // 2. Create CigLog
         const log = new CigLog({
@@ -38,7 +36,6 @@ async function testModels() {
             trigger: 'Coffee'
         });
         await log.save();
-        console.log('✅ CigLog created:', log._id);
 
         // 3. Create JournalEntry
         const entry = new JournalEntry({
@@ -49,7 +46,6 @@ async function testModels() {
             triggers: ['Stress']
         });
         await entry.save();
-        console.log('✅ JournalEntry created:', entry._id);
 
         // 4. Create Achievement
         const achievement = new Achievement({
@@ -60,9 +56,7 @@ async function testModels() {
             value: 0
         });
         await achievement.save();
-        console.log('✅ Achievement created:', achievement._id);
 
-        console.log('🎉 All models verified successfully!');
     } catch (err) {
         console.error('❌ Model verification failed:', err);
     } finally {

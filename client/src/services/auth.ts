@@ -18,6 +18,14 @@ export const authService = {
         return response.data;
     },
 
+    googleLogin: async (idToken: string) => {
+        const response = await api.post('/auth/google', { idToken });
+        if (response.data.token) {
+            await SecureStore.setItemAsync('userToken', response.data.token);
+        }
+        return response.data;
+    },
+
     logout: async () => {
         await SecureStore.deleteItemAsync('userToken');
     },

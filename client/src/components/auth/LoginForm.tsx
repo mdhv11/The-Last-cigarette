@@ -4,8 +4,11 @@ import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../../store/authSlice';
+import { login, googleLogin } from '../../store/authSlice';
 import { AppDispatch, RootState } from '../../store/store';
+import { GoogleAuthProvider, signInWithPopup, getAuth } from 'firebase/auth';
+import { auth } from '../../firebaseConfig';
+
 
 const LoginSchema = Yup.object().shape({
     email: Yup.string().email('Invalid email').required('Required'),
@@ -26,6 +29,18 @@ export const LoginForm = () => {
             dispatch(login(values));
         },
     });
+
+    const handleGoogleLogin = async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            // This works for web. For mobile, you'd integrate expo-auth-session
+            const result = await signInWithPopup(auth, provider);
+            const idToken = await result.user.getIdToken();
+            dispatch(googleLogin(idToken));
+        } catch (error) {
+            // Handle specific firebase errors here if needed
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -60,6 +75,9 @@ export const LoginForm = () => {
 
             <Button mode="contained" onPress={() => formik.handleSubmit()} loading={isLoading} disabled={isLoading} style={styles.button}>
                 Login
+            </Button>
+            <Button mode="outlined" onPress={handleGoogleLogin} loading={isLoading} disabled={isLoading} style={styles.button}>
+                Sign in with Google
             </Button>
         </View>
     );

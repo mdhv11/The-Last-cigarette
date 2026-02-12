@@ -9,7 +9,6 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/thelas
 async function testPlan() {
     try {
         await mongoose.connect(MONGODB_URI);
-        console.log('Connected to MongoDB');
 
         // Clean up previous test user
         await User.deleteOne({ email: 'plantest@example.com' });
@@ -25,7 +24,6 @@ async function testPlan() {
         const token = signupRes.body.token;
 
         // 2. Setup Plan
-        console.log('Testing Setup Plan...');
         const setupRes = await request(app)
             .post('/api/plan/setup')
             .set('Authorization', `Bearer ${token}`)
@@ -38,10 +36,8 @@ async function testPlan() {
         if (setupRes.status !== 200) {
             throw new Error(`Setup Plan failed: ${JSON.stringify(setupRes.body)}`);
         }
-        console.log('✅ Plan setup successful');
 
         // 3. Get Current Plan
-        console.log('Testing Get Current Plan...');
         const getRes = await request(app)
             .get('/api/plan/current')
             .set('Authorization', `Bearer ${token}`);
@@ -49,11 +45,8 @@ async function testPlan() {
         if (getRes.status !== 200) {
             throw new Error(`Get Plan failed: ${JSON.stringify(getRes.body)}`);
         }
-        console.log('✅ Get Plan successful');
-        console.log('Current Daily Limit:', getRes.body.plan.currentDailyLimit);
 
         // 4. Get Targets
-        console.log('Testing Get Targets...');
         const targetsRes = await request(app)
             .get('/api/plan/targets')
             .set('Authorization', `Bearer ${token}`);
@@ -61,10 +54,7 @@ async function testPlan() {
         if (targetsRes.status !== 200) {
             throw new Error(`Get Targets failed: ${JSON.stringify(targetsRes.body)}`);
         }
-        console.log('✅ Get Targets successful');
-        console.log('Next 7 days targets:', targetsRes.body.targets.map(t => t.target));
 
-        console.log('🎉 Plan system verified successfully!');
     } catch (err) {
         console.error('❌ Plan verification failed:', err);
     } finally {

@@ -10,7 +10,6 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/thelas
 async function testCigs() {
     try {
         await mongoose.connect(MONGODB_URI);
-        console.log('Connected to MongoDB');
 
         // Clean up previous test user
         await User.deleteOne({ email: 'cigtest@example.com' });
@@ -36,7 +35,6 @@ async function testCigs() {
             });
 
         // 2. Log Cigarette
-        console.log('Testing Log Cigarette...');
         const logRes = await request(app)
             .post('/api/cigs/log')
             .set('Authorization', `Bearer ${token}`)
@@ -49,11 +47,8 @@ async function testCigs() {
         if (logRes.status !== 201) {
             throw new Error(`Log Cigarette failed: ${JSON.stringify(logRes.body)}`);
         }
-        console.log('✅ Log Cigarette successful');
-        console.log('Total Smoked Today:', logRes.body.totalSmokedToday);
 
         // 3. Get Today Count
-        console.log('Testing Get Today Count...');
         const todayRes = await request(app)
             .get('/api/cigs/today')
             .set('Authorization', `Bearer ${token}`);
@@ -64,10 +59,8 @@ async function testCigs() {
         if (todayRes.body.count !== 1) {
             throw new Error(`Incorrect count: ${todayRes.body.count}`);
         }
-        console.log('✅ Get Today Count successful');
 
         // 4. Get History
-        console.log('Testing Get History...');
         const historyRes = await request(app)
             .get('/api/cigs/history')
             .set('Authorization', `Bearer ${token}`);
@@ -78,9 +71,7 @@ async function testCigs() {
         if (historyRes.body.logs.length !== 1) {
             throw new Error(`Incorrect history length: ${historyRes.body.logs.length}`);
         }
-        console.log('✅ Get History successful');
 
-        console.log('🎉 Cigarette logging system verified successfully!');
     } catch (err) {
         console.error('❌ Cigarette verification failed:', err);
     } finally {

@@ -27,7 +27,6 @@ let userId;
 const runTests = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
-        console.log('Connected to MongoDB');
 
         // Cleanup
         await User.deleteMany({ email: TEST_USER.email });
@@ -41,34 +40,29 @@ const runTests = async () => {
             .send(TEST_USER);
         token = signupRes.body.token;
         userId = signupRes.body.user.id;
-        console.log('Signup:', signupRes.status === 201 ? '✅ Success' : '❌ Failed');
 
         // 2. Setup Plan
         await request(app)
             .post('/api/plan/setup')
             .set('Authorization', `Bearer ${token}`)
             .send(TEST_PLAN);
-        console.log('Plan Setup: ✅ Success');
 
         // 3. Check Initial Achievements (Should be empty)
         const initialRes = await request(app)
             .get('/api/stats/achievements')
             .set('Authorization', `Bearer ${token}`);
-        console.log('Initial Achievements:', initialRes.body.achievements.length === 0 ? '✅ Empty' : '❌ Not Empty');
 
         // 4. Trigger "Tracker" Achievement (Log a cigarette)
         await request(app)
             .post('/api/cigs/log')
             .set('Authorization', `Bearer ${token}`)
             .send({ count: 1 });
-        console.log('Log Cigarette: ✅ Success');
 
         // 5. Trigger "Reflector" Achievement (Create journal entry)
         await request(app)
             .post('/api/journal/entry')
             .set('Authorization', `Bearer ${token}`)
             .send({ mood: 'happy', cravingIntensity: 5, note: 'Feeling good' });
-        console.log('Journal Entry: ✅ Success');
 
         // 6. Check Achievements Again
         const finalRes = await request(app)
@@ -79,9 +73,6 @@ const runTests = async () => {
         const hasTracker = achievements.some(a => a.name === 'Tracker');
         const hasReflector = achievements.some(a => a.name === 'Reflector');
 
-        console.log('Has Tracker Achievement:', hasTracker ? '✅ Yes' : '❌ No');
-        console.log('Has Reflector Achievement:', hasReflector ? '✅ Yes' : '❌ No');
-        console.log('Total Achievements:', achievements.length);
 
     } catch (error) {
         console.error('Test Error:', error);

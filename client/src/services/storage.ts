@@ -35,24 +35,19 @@ export const storageService = {
     saveToken: async (token: string) => {
         try {
             await secureStore.setItem(TOKEN_KEY, token);
-        } catch (error) {
-            console.error('Error saving token:', error);
-        }
+        } catch (error) {}
     },
     getToken: async () => {
         try {
             return await secureStore.getItem(TOKEN_KEY);
         } catch (error) {
-            console.error('Error getting token:', error);
             return null;
         }
     },
     removeToken: async () => {
         try {
             await secureStore.deleteItem(TOKEN_KEY);
-        } catch (error) {
-            console.error('Error removing token:', error);
-        }
+        } catch (error) {}
     },
 
     // Redux State
@@ -60,24 +55,19 @@ export const storageService = {
         try {
             const jsonState = JSON.stringify(state);
             await AsyncStorage.setItem(STATE_KEY, jsonState);
-        } catch (error) {
-            console.error('Error saving state:', error);
-        }
+        } catch (error) {}
     },
     loadState: async () => {
         try {
             const jsonState = await AsyncStorage.getItem(STATE_KEY);
             return jsonState ? JSON.parse(jsonState) : undefined;
         } catch (error) {
-            console.error('Error loading state:', error);
             return undefined;
         }
     },
     clearState: async () => {
         try {
             await AsyncStorage.removeItem(STATE_KEY);
-        } catch (error) {
-            console.error('Error clearing state:', error);
-        }
+        } catch (error) {}
     }
 };

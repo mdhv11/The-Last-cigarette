@@ -4,11 +4,22 @@ import { Platform } from 'react-native';
 
 import Constants from 'expo-constants';
 
+const PROD_API_URL = 'https://the-last-cigarette.onrender.com/api';
+
 // On Android, localhost refers to the device itself, not the dev machine.
 // - Android Emulator: use 10.0.2.2 (special alias for host loopback)
 // - Physical Android device: use machine's LAN IP
 // - iOS/Web: localhost works fine
 const getApiUrl = () => {
+    const envUrl = process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.apiUrl;
+    if (envUrl) {
+        return envUrl;
+    }
+
+    if (!__DEV__) {
+        return PROD_API_URL;
+    }
+
     if (Platform.OS === 'android') {
         // If running in emulator, Constants.executionEnvironment might help,
         // but the simplest reliable check: use LAN IP for physical devices

@@ -10,7 +10,6 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/thelas
 async function testJournal() {
     try {
         await mongoose.connect(MONGODB_URI);
-        console.log('Connected to MongoDB');
 
         // Clean up previous test user
         await User.deleteOne({ email: 'journaltest@example.com' });
@@ -27,7 +26,6 @@ async function testJournal() {
         const token = signupRes.body.token;
 
         // 2. Create Entry
-        console.log('Testing Create Entry...');
         const createRes = await request(app)
             .post('/api/journal/entry')
             .set('Authorization', `Bearer ${token}`)
@@ -41,11 +39,9 @@ async function testJournal() {
         if (createRes.status !== 201) {
             throw new Error(`Create Entry failed: ${JSON.stringify(createRes.body)}`);
         }
-        console.log('✅ Create Entry successful');
         const entryId = createRes.body.entry._id;
 
         // 3. Get Entries
-        console.log('Testing Get Entries...');
         const getRes = await request(app)
             .get('/api/journal/entries')
             .set('Authorization', `Bearer ${token}`);
@@ -56,10 +52,8 @@ async function testJournal() {
         if (getRes.body.entries.length !== 1) {
             throw new Error(`Incorrect entries length: ${getRes.body.entries.length}`);
         }
-        console.log('✅ Get Entries successful');
 
         // 4. Delete Entry
-        console.log('Testing Delete Entry...');
         const delRes = await request(app)
             .delete(`/api/journal/entry/${entryId}`)
             .set('Authorization', `Bearer ${token}`);
@@ -67,9 +61,7 @@ async function testJournal() {
         if (delRes.status !== 200) {
             throw new Error(`Delete Entry failed: ${JSON.stringify(delRes.body)}`);
         }
-        console.log('✅ Delete Entry successful');
 
-        console.log('🎉 Journal system verified successfully!');
     } catch (err) {
         console.error('❌ Journal verification failed:', err);
     } finally {

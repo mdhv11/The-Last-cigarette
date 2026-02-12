@@ -27,6 +27,8 @@ router.post(
     authController.login
 );
 
+router.post('/google', authController.googleLogin);
+
 router.get('/me', auth, authController.getMe);
 
 module.exports = router;
